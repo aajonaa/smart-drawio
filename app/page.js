@@ -21,6 +21,8 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [leftPanelWidth, setLeftPanelWidth] = useState(30); // Percentage of viewport width
   const [isResizingHorizontal, setIsResizingHorizontal] = useState(false);
+  const [apiError, setApiError] = useState(null);
+  const [jsonError, setJsonError] = useState(null);
 
   // Load config on mount
   useEffect(() => {
@@ -110,7 +112,7 @@ export default function Home() {
   };
 
   // Handle sending a message (single-turn)
-  const handleSendMessage = async (userMessage) => {
+  const handleSendMessage = async (userMessage, chartType = 'auto') => {
     if (!isConfigValid(config)) {
       alert('请先配置您的 LLM 提供商');
       setIsConfigModalOpen(true);
@@ -118,6 +120,8 @@ export default function Home() {
     }
 
     setIsGenerating(true);
+    setApiError(null); // Clear previous errors
+    setJsonError(null); // Clear previous JSON errors
 
     try {
       // Call generate API with streaming
@@ -127,11 +131,41 @@ export default function Home() {
         body: JSON.stringify({
           config,
           userInput: userMessage,
+          chartType,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('生成代码失败');
+        // Parse error response body if available
+        let errorMessage = '生成代码失败';
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch (e) {
+          // If response body is not JSON, use status-based messages
+          switch (response.status) {
+            case 400:
+              errorMessage = '请求参数错误，请检查输入内容';
+              break;
+            case 401:
+            case 403:
+              errorMessage = 'API 密钥无效或权限不足，请检查配置';
+              break;
+            case 429:
+              errorMessage = '请求过于频繁，请稍后再试';
+              break;
+            case 500:
+            case 502:
+            case 503:
+              errorMessage = '服务器错误，请稍后重试';
+              break;
+            default:
+              errorMessage = `请求失败 (${response.status})`;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       // Process streaming response
@@ -150,7 +184,7 @@ export default function Home() {
 
         for (const line of lines) {
           if (line.trim() === '' || line.trim() === 'data: [DONE]') continue;
-          
+
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
@@ -163,23 +197,32 @@ export default function Home() {
                 throw new Error(data.error);
               }
             } catch (e) {
+              // SSE parsing errors - show to user
+              if (e.message && !e.message.includes('Unexpected')) {
+                setApiError('数据流解析错误：' + e.message);
+              }
               console.error('Failed to parse SSE:', e);
             }
           }
         }
       }
-      
+
       // Try to parse and apply the generated code (already post-processed)
       const processedCode = postProcessExcalidrawCode(accumulatedCode);
       tryParseAndApply(processedCode);
-      
+
       // Automatically optimize the generated code
       const optimizedCode = optimizeExcalidrawCode(processedCode);
       setGeneratedCode(optimizedCode);
       tryParseAndApply(optimizedCode);
     } catch (error) {
       console.error('Error generating code:', error);
-      alert('生成代码失败：' + error.message);
+      // Check if it's a network error
+      if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+        setApiError('网络连接失败，请检查网络连接');
+      } else {
+        setApiError(error.message);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -188,12 +231,16 @@ export default function Home() {
   // Try to parse and apply code to canvas
   const tryParseAndApply = (code) => {
     try {
+      // Clear previous JSON errors
+      setJsonError(null);
+
       // Code is already post-processed, just extract the array and parse
       const cleanedCode = code.trim();
-      
+
       // Extract array from code if wrapped in other text
       const arrayMatch = cleanedCode.match(/\[[\s\S]*\]/);
       if (!arrayMatch) {
+        setJsonError('代码中未找到有效的 JSON 数组');
         console.error('No array found in generated code');
         return;
       }
@@ -201,9 +248,16 @@ export default function Home() {
       const parsed = JSON.parse(arrayMatch[0]);
       if (Array.isArray(parsed)) {
         setElements(parsed);
+        setJsonError(null); // Clear error on success
       }
     } catch (error) {
       console.error('Failed to parse generated code:', error);
+      // Extract native JSON error message
+      if (error instanceof SyntaxError) {
+        setJsonError('JSON 语法错误：' + error.message);
+      } else {
+        setJsonError('解析失败：' + error.message);
+      }
     }
   };
 
@@ -288,9 +342,32 @@ export default function Home() {
       </header>
 
       {/* Main Content - Two Column Layout */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden pb-1">
         {/* Left Panel - Chat and Code Editor */}
         <div id="left-panel" style={{ width: `${leftPanelWidth}%` }} className="flex flex-col border-r border-gray-200 bg-white">
+          {/* API Error Banner */}
+          {apiError && (
+            <div className="bg-red-50 border-b border-red-200 px-4 py-3 flex items-start justify-between">
+              <div className="flex items-start space-x-2">
+                <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-red-800">请求失败</p>
+                  <p className="text-sm text-red-700 mt-1">{apiError}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setApiError(null)}
+                className="text-red-600 hover:text-red-800 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          )}
+
           {/* Input Section */}
           <div style={{ height: '40%' }} className="overflow-hidden">
             <Chat
@@ -307,6 +384,8 @@ export default function Home() {
               onApply={handleApplyCode}
               onOptimize={handleOptimizeCode}
               onClear={handleClearCode}
+              jsonError={jsonError}
+              onClearJsonError={() => setJsonError(null)}
             />
           </div>
         </div>
@@ -330,6 +409,27 @@ export default function Home() {
         onSave={handleSaveConfig}
         initialConfig={config}
       />
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 px-6 py-3">
+        <div className="flex items-center justify-center space-x-4 text-sm text-gray-600">
+          <span>Smart Excalidraw v0.1.0</span>
+          <span className="text-gray-400">|</span>
+          <span>AI 驱动的智能图表生成工具</span>
+          <span className="text-gray-400">|</span>
+          <a
+            href="https://github.com/yourusername/smart-excalidraw-next"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-1 hover:text-gray-900 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+            </svg>
+            <span>GitHub</span>
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }

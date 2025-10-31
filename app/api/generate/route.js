@@ -8,7 +8,7 @@ import { SYSTEM_PROMPT, USER_PROMPT_TEMPLATE } from '@/lib/prompts';
  */
 export async function POST(request) {
   try {
-    const { config, userInput } = await request.json();
+    const { config, userInput, chartType } = await request.json();
 
     if (!config || !userInput) {
       return NextResponse.json(
@@ -20,7 +20,7 @@ export async function POST(request) {
     // Build messages array
     const fullMessages = [
       { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: USER_PROMPT_TEMPLATE(userInput) }
+      { role: 'user', content: USER_PROMPT_TEMPLATE(userInput, chartType) }
     ];
 
     // Create a readable stream for SSE

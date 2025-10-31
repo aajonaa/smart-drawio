@@ -186,7 +186,8 @@ export default function ConfigModal({ isOpen, onClose, onSave, initialConfig }) 
             <label className="block text-sm font-medium text-gray-700 mb-1">
               模型 <span className="text-red-500">*</span>
             </label>
-            
+            <p className="text-xs text-gray-500 mb-2">推荐 claude-sonnet-4.5</p>
+
             {/* Toggle between selection and custom input */}
             {models.length > 0 && (
               <div className="mb-2 flex items-center space-x-4">

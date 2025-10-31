@@ -2,9 +2,37 @@
 
 import { useState, useRef, useEffect } from 'react';
 
+// Chart type options
+// Must match CHART_TYPE_NAMES in lib/prompts.js
+const CHART_TYPES = {
+  auto: '自动',
+  flowchart: '流程图',
+  mindmap: '思维导图',
+  orgchart: '组织架构图',
+  sequence: '时序图',
+  class: 'UML类图',
+  er: 'ER图',
+  gantt: '甘特图',
+  timeline: '时间线',
+  tree: '树形图',
+  network: '网络拓扑图',
+  architecture: '架构图',
+  dataflow: '数据流图',
+  state: '状态图',
+  swimlane: '泳道图',
+  concept: '概念图',
+  fishbone: '鱼骨图',
+  swot: 'SWOT分析图',
+  pyramid: '金字塔图',
+  funnel: '漏斗图',
+  venn: '韦恩图',
+  matrix: '矩阵图'
+};
+
 export default function Chat({ onSendMessage, isGenerating }) {
   const [activeTab, setActiveTab] = useState('text'); // 'text' or 'file'
   const [input, setInput] = useState('');
+  const [chartType, setChartType] = useState('auto'); // Selected chart type
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileStatus, setFileStatus] = useState(''); // '', 'parsing', 'success', 'error'
   const [fileError, setFileError] = useState('');
@@ -14,7 +42,7 @@ export default function Chat({ onSendMessage, isGenerating }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (input.trim() && !isGenerating) {
-      onSendMessage(input.trim());
+      onSendMessage(input.trim(), chartType);
       // Don't clear input - keep it for user reference
     }
   };
@@ -60,7 +88,7 @@ export default function Chat({ onSendMessage, isGenerating }) {
       if (typeof content === 'string' && content.trim()) {
         setFileStatus('success');
         // Auto-submit the file content
-        onSendMessage(content.trim());
+        onSendMessage(content.trim(), chartType);
         // Don't reset file input - keep it for user reference
       } else {
         setFileError('文件内容为空');
@@ -117,6 +145,25 @@ export default function Chat({ onSendMessage, isGenerating }) {
         {activeTab === 'text' && (
           <div className="flex-1 flex flex-col p-4">
             <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
+              {/* Chart Type Selector */}
+              <div className="mb-3">
+                <label htmlFor="chart-type-text" className="block text-xs font-medium text-gray-700 mb-1">
+                  图表类型
+                </label>
+                <select
+                  id="chart-type-text"
+                  value={chartType}
+                  onChange={(e) => setChartType(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+                  disabled={isGenerating}
+                >
+                  {Object.entries(CHART_TYPES).map(([key, label]) => (
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="relative flex-1">
                 <textarea
                   ref={textareaRef}
@@ -166,6 +213,25 @@ export default function Chat({ onSendMessage, isGenerating }) {
         {/* File Upload Tab */}
         {activeTab === 'file' && (
           <div className="flex-1 flex flex-col items-center justify-center p-4">
+            {/* Chart Type Selector */}
+            <div className="w-full max-w-md mb-6">
+              <label htmlFor="chart-type-file" className="block text-xs font-medium text-gray-700 mb-1">
+                图表类型
+              </label>
+              <select
+                id="chart-type-file"
+                value={chartType}
+                onChange={(e) => setChartType(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+                disabled={isGenerating || fileStatus === 'parsing'}
+              >
+                {Object.entries(CHART_TYPES).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="text-center mb-6">
               <p className="text-sm text-gray-600 mb-2">上传 Markdown 或文本文件</p>
               <p className="text-xs text-gray-400">支持 .md 和 .txt 格式，最大 1MB</p>
