@@ -12,8 +12,8 @@ export default function LoadingOverlay({
     <div
       className={`absolute inset-0 z-50 flex items-center justify-center ${
         transparent
-          ? 'bg-black bg-opacity-10'
-          : 'bg-white bg-opacity-90'
+          ? 'bg-black/10 '
+          : 'bg-white/90 '
       } ${className}`}
     >
       <div className="flex flex-col items-center space-y-3">

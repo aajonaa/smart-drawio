@@ -23,7 +23,7 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isApplyingCode, setIsApplyingCode] = useState(false);
   const [isOptimizingCode, setIsOptimizingCode] = useState(false);
-  const [leftPanelWidth, setLeftPanelWidth] = useState(30); // Percentage of viewport width
+  const [leftPanelWidth, setLeftPanelWidth] = useState(25); // Percentage of viewport width
   const [isResizingHorizontal, setIsResizingHorizontal] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [jsonError, setJsonError] = useState(null);
@@ -319,7 +319,7 @@ export default function Home() {
       const percentage = (e.clientX / window.innerWidth) * 100;
       
       // Clamp between 30% and 70%
-      setLeftPanelWidth(Math.min(Math.max(percentage, 30), 70));
+      setLeftPanelWidth(Math.min(Math.max(percentage, 20), 80));
     };
 
     const handleMouseUp = () => {
@@ -391,7 +391,7 @@ export default function Home() {
           )}
 
           {/* Input Section */}
-          <div style={{ height: '60%' }} className="overflow-auto">
+          <div style={{ height: '50%' }} className="overflow-auto">
             <Chat
               onSendMessage={handleSendMessage}
               isGenerating={isGenerating}
@@ -399,7 +399,7 @@ export default function Home() {
           </div>
 
           {/* Code Editor Section */}
-          <div style={{ height: '40%' }} className="overflow-hidden">
+          <div style={{ height: '50%' }} className="overflow-hidden">
             <CodeEditor
               code={generatedCode}
               onChange={setGeneratedCode}
