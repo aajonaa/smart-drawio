@@ -2,7 +2,7 @@
 
 import { Editor } from '@monaco-editor/react';
 
-export default function CodeEditor({ code, onChange, onApply, onOptimize, onClear, jsonError, onClearJsonError, isGenerating, isApplyingCode, isOptimizingCode }) {
+export default function CodeEditor({ code, onChange, onApply, onOptimize, onAdvancedOptimize, onClear, jsonError, onClearJsonError, isGenerating, isApplyingCode, isOptimizingCode }) {
   return (
     <div className="flex relative flex-col h-full bg-gray-50 border-t border-gray-200">
       <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
@@ -40,6 +40,17 @@ export default function CodeEditor({ code, onChange, onApply, onOptimize, onClea
                 )}
               </>
             )}
+          </button>
+          <button
+            onClick={onAdvancedOptimize}
+            disabled={isGenerating || isApplyingCode || isOptimizingCode || !code.trim()}
+            className="px-4 py-2 text-sm font-medium text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center gap-2"
+            style={{
+              background: isGenerating || isApplyingCode || isOptimizingCode ? '#d1d5db' : 'linear-gradient(135deg, #f093fb 0%, #f093fb 100%)'
+            }}
+            title="高级优化选项"
+          >
+            <span>高级优化</span>
           </button>
           <button
             onClick={onApply}

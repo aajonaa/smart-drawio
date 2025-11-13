@@ -4,7 +4,7 @@ import { SYSTEM_PROMPT, USER_PROMPT_TEMPLATE } from '@/lib/prompts';
 
 /**
  * POST /api/generate
- * Generate Excalidraw code based on user input
+ * Generate Draw.io diagram based on user input
  */
 export async function POST(request) {
   try {
@@ -50,8 +50,40 @@ export async function POST(request) {
     // Build messages array
     let userMessage;
 
+    console.log('[DEBUG] Received userInput:', {
+      type: typeof userInput,
+      hasImage: !!userInput?.image,
+      imageDataLength: userInput?.image?.data?.length,
+      mimeType: userInput?.image?.mimeType
+    });
+
     // Handle different input types
     if (typeof userInput === 'object' && userInput.image) {
+      // Check if model supports vision
+      const model = finalConfig.model.toLowerCase();
+      const supportsVision =
+        model.includes('vision') ||
+        model.includes('gpt-4o') ||
+        model.includes('gpt-4-turbo') ||
+        model.includes('claude-3') ||
+        model.includes('claude-sonnet') ||
+        model.includes('claude-opus') ||
+        model.includes('claude-haiku');
+
+      console.log('[DEBUG] API Configuration:', {
+        type: finalConfig.type,
+        baseUrl: finalConfig.baseUrl,
+        model: finalConfig.model,
+        supportsVision: supportsVision
+      });
+
+      if (!supportsVision) {
+        return NextResponse.json(
+          { error: '当前模型不支持图片输入，请使用支持vision的模型（如 gpt-4o, gpt-4-vision-preview, claude-3-opus, claude-3-sonnet, claude-sonnet-4 等）' },
+          { status: 400 }
+        );
+      }
+
       // Image input with text and image data
       const { text, image } = userInput;
       userMessage = {
@@ -62,6 +94,12 @@ export async function POST(request) {
           mimeType: image.mimeType
         }
       };
+
+      console.log('[DEBUG] Built userMessage:', {
+        hasImage: !!userMessage?.image,
+        imageDataLength: userMessage?.image?.data?.length,
+        mimeType: userMessage?.image?.mimeType
+      });
     } else {
       // Regular text input
       userMessage = {

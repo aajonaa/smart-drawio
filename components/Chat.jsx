@@ -6,7 +6,7 @@ import LoadingOverlay from './LoadingOverlay';
 import { generateImagePrompt } from '@/lib/image-utils';
 import { CHART_TYPES } from '@/lib/constants';
 
-export default function Chat({ onSendMessage, isGenerating, initialInput = '', initialChartType = 'auto' }) {
+export default function Chat({ onSendMessage, isGenerating, initialInput = '', initialChartType = 'auto', onStop }) {
   const [activeTab, setActiveTab] = useState('text'); // 'text', 'file', or 'image'
   const [input, setInput] = useState(initialInput);
   const [chartType, setChartType] = useState(initialChartType); // Selected chart type
@@ -43,7 +43,7 @@ export default function Chat({ onSendMessage, isGenerating, initialInput = '', i
     }
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) {
       // Reset file-related state when no file is selected
@@ -56,20 +56,20 @@ export default function Chat({ onSendMessage, isGenerating, initialInput = '', i
     }
 
     // Validate file type
-    const validExtensions = ['.md', '.txt'];
+    const validExtensions = ['.md', '.txt', '.json', '.csv'];
     const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
     if (!validExtensions.includes(fileExtension)) {
-      setFileError('请选择 .md 或 .txt 文件');
+      setFileError('请选择支持的文件格式（.md, .txt, .json, .csv）');
       setFileStatus('error');
       setCanGenerate(false);
       return;
     }
 
-    // Validate file size (max 1MB)
-    const maxSize = 1 * 1024 * 1024; // 1MB in bytes
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
     if (file.size > maxSize) {
-      setFileError('文件大小不能超过 1MB');
+      setFileError('文件大小不能超过 10MB');
       setFileStatus('error');
       setCanGenerate(false);
       return;
@@ -104,7 +104,7 @@ export default function Chat({ onSendMessage, isGenerating, initialInput = '', i
       setCanGenerate(false);
     };
 
-    reader.readAsText(file);
+    reader.readAsText(file, 'UTF-8');
   };
 
   const handleFileButtonClick = () => {
@@ -135,11 +135,13 @@ export default function Chat({ onSendMessage, isGenerating, initialInput = '', i
       // 生成针对图片的提示词
       const imagePrompt = generateImagePrompt(chartType);
 
-      // 创建包含图片数据的消息对象
+      // 创建包含图片数据的消息对象，只保留必要字段
       const messageData = {
         text: imagePrompt,
-        image: selectedImage,
-        chartType
+        image: {
+          data: selectedImage.data,
+          mimeType: selectedImage.mimeType
+        }
       };
 
       onSendMessage(messageData, chartType);
@@ -237,22 +239,29 @@ export default function Chat({ onSendMessage, isGenerating, initialInput = '', i
                   }}
                   disabled={isGenerating}
                 />
-                <button
-                  type="submit"
-                  disabled={!input.trim() || isGenerating}
-                  className="absolute right-2 bottom-2 p-2 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200"
-                  title={isGenerating ? "生成中..." : "发送"}
-                >
-                  {isGenerating ? (
-                    <div className="flex items-center justify-center">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  ) : (
+                {isGenerating ? (
+                  <button
+                    type="button"
+                    onClick={onStop}
+                    className="absolute right-2 bottom-2 p-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+                    title="停止生成"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={!input.trim()}
+                    className="absolute right-2 bottom-2 p-2 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200"
+                    title="发送"
+                  >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
-                  )}
-                </button>
+                  </button>
+                )}
               </div>
             </form>
             {/* Unified Loading Overlay */}
@@ -287,13 +296,13 @@ export default function Chat({ onSendMessage, isGenerating, initialInput = '', i
             </div>
             <div className="text-center mb-6">
               <p className="text-sm text-gray-600 mb-2">上传 Markdown 或文本文件</p>
-              <p className="text-xs text-gray-400">支持 .md 和 .txt 格式，最大 1MB</p>
+              <p className="text-xs text-gray-400">支持 .md, .txt, .json, .csv 格式，最大 10MB</p>
             </div>
 
             <input
               ref={fileInputRef}
               type="file"
-              accept=".md,.txt"
+              accept=".md,.txt,.json,.csv"
               onChange={handleFileChange}
               className="hidden"
               disabled={isGenerating || fileStatus === 'parsing'}
@@ -362,18 +371,30 @@ export default function Chat({ onSendMessage, isGenerating, initialInput = '', i
                 </div>
 
                 {/* Generate Button */}
-                {fileStatus === 'success' && !isGenerating && (
+                {fileStatus === 'success' && (
                   <div className="mt-4">
-                    <button
-                      onClick={handleFileGenerate}
-                      disabled={!canGenerate}
-                      className="w-full px-4 py-3 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center space-x-2"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                      <span>开始生成</span>
-                    </button>
+                    {isGenerating ? (
+                      <button
+                        onClick={onStop}
+                        className="w-full px-4 py-3 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200 flex items-center justify-center space-x-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span>停止生成</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleFileGenerate}
+                        disabled={!canGenerate}
+                        className="w-full px-4 py-3 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center space-x-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span>开始生成</span>
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -395,6 +416,7 @@ export default function Chat({ onSendMessage, isGenerating, initialInput = '', i
               chartType={chartType}
               onChartTypeChange={setChartType}
               onImageGenerate={handleImageSubmit}
+              onStop={onStop}
             />
             {/* Unified Loading Overlay for image upload */}
             <LoadingOverlay

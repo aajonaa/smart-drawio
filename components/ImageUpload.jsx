@@ -10,7 +10,7 @@ import {
 } from '@/lib/image-utils';
 import { CHART_TYPES } from '@/lib/constants';
 
-export default function ImageUpload({ onImageSelect, isGenerating, chartType, onChartTypeChange, onImageGenerate }) {
+export default function ImageUpload({ onImageSelect, isGenerating, chartType, onChartTypeChange, onImageGenerate, onStop }) {
   const [imagePreview, setImagePreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(''); // '', 'uploading', 'success', 'error'
@@ -283,27 +283,29 @@ export default function ImageUpload({ onImageSelect, isGenerating, chartType, on
           )}
 
           {/* 生成按钮 */}
-          {uploadStatus === 'success' && !isGenerating && (
-            <button
-              onClick={onImageGenerate}
-              className="w-full mt-2 px-4 py-3 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center space-x-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <span>开始生成</span>
-            </button>
-          )}
-
-          {/* 生成中状态 */}
-          {isGenerating && uploadStatus === 'success' && (
-            <div className="mt-2 flex items-center justify-center text-sm text-blue-600">
-              <div className="flex space-x-1 mr-2">
-                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-              </div>
-              <span>正在识别...</span>
+          {uploadStatus === 'success' && (
+            <div className="mt-2">
+              {isGenerating ? (
+                <button
+                  onClick={onStop}
+                  className="w-full px-4 py-3 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200 flex items-center justify-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>停止生成</span>
+                </button>
+              ) : (
+                <button
+                  onClick={onImageGenerate}
+                  className="w-full px-4 py-3 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>开始生成</span>
+                </button>
+              )}
             </div>
           )}
         </div>

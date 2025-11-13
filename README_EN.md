@@ -1,4 +1,4 @@
-# Smart Excalidraw
+# Smart Drawio
 
 > **Draw Professional Charts with Natural Language**
 
@@ -7,7 +7,7 @@ Visit our online website to use directly: https://smart-excalidraw.aizhi.site/
 
 ## 📸 Preview
 Operation Interface
-<img width="2330" height="1255" alt="Smart Excalidraw Preview" src="https://github.com/user-attachments/assets/5319ad5c-c507-42e0-b67a-e9dfb2d7ecfa" />
+<img width="2330" height="1255" alt="Smart Drawio Preview" src="https://github.com/user-attachments/assets/5319ad5c-c507-42e0-b67a-e9dfb2d7ecfa" />
 Technical Architecture Diagram
 <img width="1920" height="1134" alt="Untitled-2025-11-03-1105" src="https://github.com/user-attachments/assets/d2e01c4e-d300-4c20-bd98-d056e4f02102" />
 Infographic
@@ -24,8 +24,8 @@ Featuring a proprietary intelligent arrow optimization algorithm that automatica
 ### 📊 Rich Chart Types
 Supports 20+ chart types, including flowcharts, architecture diagrams, sequence diagrams, ER diagrams, mind maps, and more. AI can also automatically select the most suitable chart type based on your description.
 
-### 🎨 Perfect Excalidraw Integration
-Generated charts are fully based on Excalidraw format, allowing free editing, style adjustments, and detail additions on the canvas—achieving the perfect combination of AI generation and manual refinement.
+### 🎨 Perfect Draw.io Integration
+Generated charts are fully based on Draw.io format, allowing free editing, style adjustments, and detail additions on the canvas—achieving the perfect combination of AI generation and manual refinement.
 
 ### ⚡ Ready to Use
 Simply configure an AI API key to get started, no complex environment setup required. All configurations are stored locally in your browser for privacy and security.
@@ -71,8 +71,8 @@ If you want to run the project locally:
 
 ```bash
 # Clone the project
-git clone https://github.com/liujuntao123/smart-excalidraw-next.git
-cd smart-excalidraw-next
+git clone https://github.com/liujuntao123/smart-drawio-next.git
+cd smart-drawio-next
 
 # Install dependencies
 pnpm install
@@ -142,7 +142,7 @@ A: All configuration information is stored only in your local browser and never 
 A: Supports 20+ types including flowcharts, architecture diagrams, sequence diagrams, ER diagrams, mind maps, network topology diagrams, etc. AI will automatically select the most suitable type.
 
 **Q: Can generated charts be modified?**
-A: Absolutely! After generation, you can freely edit on the Excalidraw canvas, including adjusting positions, modifying styles, adding elements, and more.
+A: Absolutely! After generation, you can freely edit on the Draw.io canvas, including adjusting positions, modifying styles, adding elements, and more.
 
 **Q: What is the access password feature?**
 A: The access password feature allows server administrators to configure a unified LLM. Users only need to enter the password to use it, without needing to apply for their own API Key. When access password is enabled, the server-side configuration takes priority over local configuration.
@@ -155,7 +155,7 @@ A: Yes! The interface now supports both Chinese and English, with automatic lang
 
 ## 🛠️ Tech Stack
 
-Next.js 16 · React 19 · Excalidraw · Tailwind CSS 4 · Monaco Editor · next-intl
+Next.js 16 · React 19 · Draw.io · Tailwind CSS 4 · Monaco Editor · next-intl
 
 ## 🌐 Internationalization
 

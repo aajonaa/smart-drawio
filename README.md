@@ -1,4 +1,4 @@
-# Smart Excalidraw
+# Smart Drawio
 
 > **用自然语言，绘制专业图表**
 
@@ -33,8 +33,8 @@ Read the English version: [README_EN.md](README_EN.md)
 ### 📊 丰富图表类型
 支持 20+ 种图表类型，包括流程图、架构图、时序图、ER 图、思维导图等。也可以让AI根据你的描述自动选择最合适的图表类型。
 
-### 🎨 完美 Excalidraw 集成
-生成的图表完全基于 Excalidraw 格式，可以在画布上自由编辑、调整样式、添加细节，实现 AI 生成与手动精修的完美结合。
+### 🎨 完美 Draw.io 集成
+生成的图表完全基于 Draw.io 格式，可以在画布上自由编辑、调整样式、添加细节，实现 AI 生成与手动精修的完美结合。
 
 ### ⚡ 开箱即用
 只需配置一个 AI API 密钥即可开始使用，无需复杂的环境搭建。所有配置保存在本地浏览器，隐私安全有保障。
@@ -80,7 +80,7 @@ AI 会自动生成图表，你可以在画布上直接编辑和调整。
 ```bash
 # 克隆项目
 git clone <your-repo-url>
-cd smart-excalidraw-next
+cd smart-drawio-next
 
 # 安装依赖
 pnpm install
@@ -97,7 +97,7 @@ pnpm dev
 
 1. 复制环境变量示例文件：
 ```bash
-cp .env.example 
+cp .env.example .env
 ```
 
 2. 在 `.env` 中配置以下变量：
@@ -138,7 +138,7 @@ A: 所有配置信息仅保存在你的浏览器本地，不会上传到任何�
 A: 支持流程图、架构图、时序图、ER 图、思维导图、网络拓扑图等 20+ 种类型，AI 会自动选择最合适的类型。
 
 **Q: 生成的图表可以修改吗？**
-A: 当然可以！生成后可以在 Excalidraw 画布上自由编辑，包括调整位置、修改样式、添加元素等。
+A: 当然可以！生成后可以在 Draw.io 画布上自由编辑，包括调整位置、修改样式、添加元素等。
 
 **Q: 什么是访问密码功能？**
 A: 访问密码功能允许服务器管理员配置统一的 LLM，用户只需输入密码即可使用，无需自己申请 API Key。启用访问密码后，将优先使用服务器端配置，忽略本地配置。
@@ -148,7 +148,7 @@ A: 如果启用了访问密码，系统将优先使用服务器端的 LLM 配置
 
 ## 🛠️ 技术栈
 
-Next.js 16 · React 19 · Excalidraw · Tailwind CSS 4 · Monaco Editor
+Next.js 16 · React 19 · Draw.io · Tailwind CSS 4 · Monaco Editor
 
 ## 📄 许可证
 
