@@ -140,7 +140,7 @@ pnpm dev
 
 ## 贡献
 
-1. 项目在https://github.com/liujuntao123/smart-excalidraw-next项目上修改
+1. 项目在此项目上修改：https://github.com/liujuntao123/smart-excalidraw-next
 2. 十分感谢L站所有开公益站的佬友！
 3. 如果这个项目对你有帮助，欢迎通过以下方式支持：
    - ⭐ 给项目点个 Star
