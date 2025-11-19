@@ -122,7 +122,7 @@ export default function DrawioCanvas({ elements, xml }) {
     <div className="w-full h-full">
       <iframe
         ref={iframeRef}
-        src="https://embed.diagrams.net/?embed=1&proto=json&ui=min"
+        src="https://embed.diagrams.net/?embed=1&proto=json&spin=1"
         className="w-full h-full border-0"
         allow="fullscreen"
       />
