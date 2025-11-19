@@ -34,6 +34,7 @@ export default function Home() {
   const [isApplyingCode, setIsApplyingCode] = useState(false);
   const [isOptimizingCode, setIsOptimizingCode] = useState(false);
   const [leftPanelWidth, setLeftPanelWidth] = useState(25); // Percentage of viewport width
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(true); // Default collapsed
   const [isResizingHorizontal, setIsResizingHorizontal] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [jsonError, setJsonError] = useState(null);
@@ -748,9 +749,9 @@ export default function Home() {
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isResizingHorizontal) return;
-      
+
       const percentage = (e.clientX / window.innerWidth) * 100;
-      
+
       // 可调节的范围
       setLeftPanelWidth(Math.min(Math.max(percentage, 20), 80));
     };
@@ -769,6 +770,11 @@ export default function Home() {
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isResizingHorizontal]);
+
+  // Toggle left panel
+  const toggleLeftPanel = () => {
+    setIsLeftPanelCollapsed(!isLeftPanelCollapsed);
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -800,20 +806,23 @@ export default function Home() {
             >
               访问密码
             </button>
-            <button
-              onClick={() => setIsConfigManagerOpen(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-gray-900 border border-gray-900 rounded hover:bg-gray-800 transition-colors duration-200"
-            >
-              管理配置
-            </button>
           </div>
         </div>
       </header>
 
       {/* Main Content - Two Column Layout */}
-      <div className="flex flex-1 overflow-hidden pb-1">
+      <div className="flex flex-1 overflow-hidden pb-1 relative">
         {/* Left Panel - Chat and Code Editor */}
-        <div id="left-panel" style={{ width: `${leftPanelWidth}%` }} className="flex flex-col border-r border-gray-200 bg-white">
+        <div
+          id="left-panel"
+          style={{
+            width: isLeftPanelCollapsed ? '0px' : `${leftPanelWidth}%`,
+            minWidth: isLeftPanelCollapsed ? '0px' : '300px',
+            opacity: isLeftPanelCollapsed ? 0 : 1,
+            visibility: isLeftPanelCollapsed ? 'hidden' : 'visible'
+          }}
+          className={`flex flex-col border-r border-gray-200 bg-white transition-all duration-300 ease-in-out overflow-hidden`}
+        >
           {/* API Error Banner */}
           {apiError && (
             <div className="bg-red-50 border-b border-red-200 px-4 py-3 flex items-start justify-between">
@@ -831,7 +840,7 @@ export default function Home() {
                 className="text-red-600 hover:text-red-800 transition-colors"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
               </button>
             </div>
@@ -869,14 +878,36 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Horizontal Resizer */}
-        <div
-          onMouseDown={handleHorizontalMouseDown}
-          className="w-1 bg-gray-200 hover:bg-gray-400 cursor-col-resize transition-colors duration-200 flex-shrink-0"
-        />
+        {/* Horizontal Resizer & Toggle Button Container */}
+        <div className="relative flex flex-col justify-center z-10">
+          {/* Resizer (only visible when expanded) */}
+          {!isLeftPanelCollapsed && (
+            <div
+              onMouseDown={handleHorizontalMouseDown}
+              className="absolute inset-y-0 left-0 w-1 bg-gray-200 hover:bg-gray-400 cursor-col-resize transition-colors duration-200"
+            />
+          )}
+
+          {/* Toggle Button */}
+          <button
+            onClick={toggleLeftPanel}
+            className="absolute left-0 w-6 h-12 bg-white border border-gray-300 rounded-r-md shadow-sm flex items-center justify-center hover:bg-gray-50 focus:outline-none z-20 transform translate-x-0"
+            style={{ left: isLeftPanelCollapsed ? '0' : '0' }} // Always anchored to the divider line
+            title={isLeftPanelCollapsed ? "展开面板" : "收起面板"}
+          >
+            <svg
+              className={`w-4 h-4 text-gray-500 transition-transform duration-300 ${isLeftPanelCollapsed ? '' : 'rotate-180'}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
 
         {/* Right Panel - Drawio Canvas */}
-        <div style={{ width: `${100 - leftPanelWidth}%`, height: '100%' }} className="bg-gray-50">
+        <div style={{ width: isLeftPanelCollapsed ? '100%' : `${100 - leftPanelWidth}%`, height: '100%' }} className="bg-gray-50 transition-all duration-300 ease-in-out">
           <DrawioCanvas elements={elements} xml={generatedXml} />
         </div>
       </div>
